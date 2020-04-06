@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ankushappy/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run ankushappy/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t ankushappy/multi-client ./client
+  - docker build -t ankushappy/multi-nginx ./nginx
+  - docker build -t ankushappy/multi-worker ./worker
+  - docker build -t ankushappy/multi-server ./server
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ankushappy/multi-client
+  - docker push ankushappy/multi-worker
+  - docker push ankushappy/multi-nginx
+  - docker push ankushappy/multi-server
